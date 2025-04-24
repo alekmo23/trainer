@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Экзаменационный режим - Птичий тренажер</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .timer-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: white;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .timer {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .progress-container {
+      width: 100%;
+      background: #E5E7EB;
+      border-radius: 50px;
+      margin: 0.5rem 0;
+      height: 8px;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      border-radius: 50px;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+    
+    .question-counter {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+    
+    .bird-display {
+      background: white;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .bird-image {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .option-btn {
+      padding: 1rem;
+      background: white;
+      border: 2px solid #E5E7EB;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    
+    .option-btn:hover:not(.selected) {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+    }
+    
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: white;
+    }
+    
+    .option-btn.correct {
+      background: var(--secondary);
+      color: white;
+      border-color: var(--secondary);
+    }
+    
+    .option-btn.incorrect {
+      background: #EF4444;
+      color: white;
+      border-color: #EF4444;
+    }
+    
+    .feedback {
+      padding: 1rem;
+      background: white;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.5rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .feedback.correct {
+      background: #ECFDF5;
+      color: var(--secondary);
+      display: block;
+    }
+    
+    .feedback.incorrect {
+      background: #FEF2F2;
+      color: #EF4444;
+      display: block;
+    }
+    
+    .next-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .next-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .results-container {
+      text-align: center;
+      padding: 2rem;
+      background: white;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      display: none;
+    }
+    
+    .results-title {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      color: var(--primary-dark);
+    }
+    
+    .score-display {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 1rem 0;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .stat-card {
+      background: var(--bg);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    
+    .restart-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+    
+    .restart-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .home-btn {
+      background: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    
+    .home-btn:hover {
+      background: var(--primary-light);
+      color: white;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 768px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .bird-image {
+        height: 300px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Экзаменационный режим</h1>
+        <p class="subtitle">Проверьте свои знания на время</p>
+      </div>
+    </header>
+
+    <main class="test-container">
+      <div id="quiz-interface">
+        <div class="timer-container">
+          <div>
+            <div class="question-counter">Вопрос <span id="current-question">1</span> из <span id="total-questions">10</span></div>
+            <div class="progress-container">
+              <div class="progress-bar" id="progress-bar" style="width: 10%"></div>
+            </div>
+          </div>
+          <div class="timer" id="timer">02:00</div>
+        </div>
+        
+        <div class="bird-display">
+          <img id="bird-image" class="bird-image" src="" alt="Фото птицы">
+        </div>
+        
+        <div id="feedback" class="feedback"></div>
+        
+        <div class="options-grid" id="options-container">
+          <!-- Варианты ответов будут добавлены через JS -->
+        </div>
+        
+        <button id="next-btn" class="next-btn" disabled>Следующий вопрос</button>
+      </div>
+      
+      <div id="results-interface" class="results-container">
+        <h2 class="results-title">Результаты теста</h2>
+        <div class="score-display" id="final-score">0/10</div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="correct-answers">0</div>
+            <div class="stat-label">Правильных ответов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="incorrect-answers">0</div>
+            <div class="stat-label">Неправильных ответов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="time-spent">0:00</div>
+            <div class="stat-label">Затраченное время</div>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="action-btn restart-btn" id="restart-btn">Пройти снова</button>
+          <button class="action-btn home-btn" id="home-btn">На главную</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index.html'">На главную</button>
+    </footer>
+  </div>
+
+  <script>
+    // Данные о птицах
+    const birds = [
+      { name: "Белогорлый воробей", image: "images/sparrows/sparrow1.jpg" },
+      { name: "Большая синица", image: "images/sparrows/sparrow2.jpg" },
+      { name: "Вертишейка", image: "images/sparrows/sparrow3.jpg" },
+      { name: "Домовый воробей", image: "images/sparrows/sparrow4.jpg" },
+      { name: "Дубровник", image: "images/sparrows/sparrow5.jpg" },
+      { name: "Желтогрудая овсянка", image: "images/sparrows/sparrow6.jpg" },
+      { name: "Зарянка", image: "images/sparrows/sparrow7.jpg" },
+      { name: "Зеленушка", image: "images/sparrows/sparrow8.jpg" },
+      { name: "Зяблик", image: "images/sparrows/sparrow9.jpg" },
+      { name: "Каменный дрозд", image: "images/sparrows/sparrow10.jpg" },
+      { name: "Камышовая овсянка", image: "images/sparrows/sparrow11.jpg" },
+      { name: "Клёст-еловик", image: "images/sparrows/sparrow12.jpg" },
+      { name: "Клёст-сосновик", image: "images/sparrows/sparrow13.jpg" },
+      { name: "Коноплянка", image: "images/sparrows/sparrow14.jpg" },
+      { name: "Краснокрылая каменка", image: "images/sparrows/sparrow15.jpg" },
+      { name: "Лапландский подорожник", image: "images/sparrows/sparrow16.jpg" },
+      { name: "Московка", image: "images/sparrows/sparrow17.jpg" },
+      { name: "Обыкновенная овсянка", image: "images/sparrows/sparrow18.jpg" },
+      { name: "Обыкновенная чечевица", image: "images/sparrows/sparrow19.jpg" },
+      { name: "Обыкновенный дубонос", image: "images/sparrows/sparrow20.jpg" },
+      { name: "Обыкновенный каменный воробей", image: "images/sparrows/sparrow21.jpg" },
+      { name: "Обыкновенный снегирь", image: "images/sparrows/sparrow22.jpg" },
+      { name: "Полевой воробей", image: "images/sparrows/sparrow23.jpg" },
+      { name: "Просянка", image: "images/sparrows/sparrow24.jpg" },
+      { name: "Пуночка", image: "images/sparrows/sparrow25.jpg" },
+      { name: "Ремез", image: "images/sparrows/sparrow26.jpg" },
+      { name: "Садововая овсянка", image: "images/sparrows/sparrow27.jpg" },
+      { name: "Серый снегирь", image: "images/sparrows/sparrow28.jpg" },
+      { name: "Сибирская чечевица", image: "images/sparrows/sparrow29.jpg" },
+      { name: "Скромная горихвостка", image: "images/sparrows/sparrow30.jpg" },
+      { name: "Снежный вьюрок", image: "images/sparrows/sparrow31.jpg" },
+      { name: "Урагус", image: "images/sparrows/sparrow32.jpg" },
+      { name: "Фоновый крапивник", image: "images/sparrows/sparrow33.jpg" },
+      { name: "Хохлатая синица", image: "images/sparrows/sparrow34.jpg" },
+      { name: "Черноголовая гаичка", image: "images/sparrows/sparrow35.jpg" },
+      { name: "Чечётка", image: "images/sparrows/sparrow36.jpg" },
+      { name: "Чиж", image: "images/sparrows/sparrow37.jpg" },
+      { name: "Щегол", image: "images/sparrows/sparrow38.jpg" },
+      { name: "Щур", image: "images/sparrows/sparrow39.jpg" }
+    ];
+
+    // Настройки теста
+    const TEST_DURATION = 120; // 2 минуты на весь тест
+    const QUESTIONS_COUNT = 10;
+    
+    // Состояние теста
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let selectedAnswer = null;
+    let timeLeft = TEST_DURATION;
+    let timerInterval;
+    let startTime;
+    let testFinished = false;
+    let shuffledBirds = [];
+    
+    // Элементы интерфейса
+    const quizInterface = document.getElementById('quiz-interface');
+    const resultsInterface = document.getElementById('results-interface');
+    const birdImage = document.getElementById('bird-image');
+    const optionsContainer = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const timerElement = document.getElementById('timer');
+    const progressBar = document.getElementById('progress-bar');
+    const currentQuestionElement = document.getElementById('current-question');
+    const totalQuestionsElement = document.getElementById('total-questions');
+    const finalScoreElement = document.getElementById('final-score');
+    const correctAnswersElement = document.getElementById('correct-answers');
+    const incorrectAnswersElement = document.getElementById('incorrect-answers');
+    const timeSpentElement = document.getElementById('time-spent');
+    const restartBtn = document.getElementById('restart-btn');
+    const homeBtn = document.getElementById('home-btn');
+    
+    // Инициализация теста
+    function initTest() {
+      // Перемешиваем птиц и выбираем нужное количество для теста
+      shuffledBirds = [...birds].sort(() => Math.random() - 0.5).slice(0, QUESTIONS_COUNT);
+      
+      currentQuestion = 0;
+      correctAnswers = 0;
+      incorrectAnswers = 0;
+      selectedAnswer = null;
+      timeLeft = TEST_DURATION;
+      testFinished = false;
+      
+      // Устанавливаем общее количество вопросов
+      totalQuestionsElement.textContent = QUESTIONS_COUNT;
+      
+      // Запускаем таймер
+      startTimer();
+      
+      // Показываем первый вопрос
+      showQuestion();
+      
+      // Показываем интерфейс теста
+      quizInterface.style.display = 'block';
+      resultsInterface.style.display = 'none';
+    }
+    
+    // Таймер
+    function startTimer() {
+      clearInterval(timerInterval);
+      startTime = Date.now();
+      
+      timerInterval = setInterval(() => {
+        timeLeft = TEST_DURATION - Math.floor((Date.now() - startTime) / 1000);
+        
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          clearInterval(timerInterval);
+          if (!testFinished) {
+            finishTest();
+          }
+        }
+        
+        updateTimerDisplay();
+      }, 1000);
+    }
+    
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Меняем цвет при малом остатке времени
+      if (timeLeft <= 30) {
+        timerElement.style.color = '#EF4444';
+      } else {
+        timerElement.style.color = 'inherit';
+      }
+    }
+    
+    // Отображение вопроса
+    function showQuestion() {
+      if (currentQuestion >= QUESTIONS_COUNT) {
+        finishTest();
+        return;
+      }
+      
+      const currentBird = shuffledBirds[currentQuestion];
+      birdImage.src = currentBird.image;
+      
+      // Обновляем счетчик вопросов
+      currentQuestionElement.textContent = currentQuestion + 1;
+      progressBar.style.width = `${((currentQuestion + 1) / QUESTIONS_COUNT) * 100}%`;
+      
+      // Генерируем варианты ответов
+      const options = getRandomOptions(currentBird, 4);
+      renderOptions(options);
+      
+      // Сбрасываем состояние
+      selectedAnswer = null;
+      feedback.className = 'feedback';
+      nextBtn.disabled = true;
+    }
+    
+    // Генерация вариантов ответов
+    function getRandomOptions(correctBird, count) {
+      const options = [correctBird];
+      
+      while (options.length < count) {
+        const randomBird = birds[Math.floor(Math.random() * birds.length)];
+        if (!options.some(b => b.name === randomBird.name)) {
+          options.push(randomBird);
+        }
+      }
+      
+      return options.sort(() => Math.random() - 0.5);
+    }
+    
+    // Отображение вариантов ответов
+    function renderOptions(options) {
+      optionsContainer.innerHTML = '';
+      
+      options.forEach(bird => {
+        const optionBtn = document.createElement('button');
+        optionBtn.className = 'option-btn';
+        optionBtn.textContent = bird.name;
+        optionBtn.dataset.name = bird.name;
+        
+        optionBtn.addEventListener('click', () => selectAnswer(optionBtn, bird.name));
+        optionsContainer.appendChild(optionBtn);
+      });
+    }
+    
+    // Выбор ответа
+    function selectAnswer(button, selectedName) {
+      if (selectedAnswer !== null) return;
+      
+      selectedAnswer = selectedName;
+      const currentBird = shuffledBirds[currentQuestion];
+      
+      // Подсвечиваем выбранный ответ
+      button.classList.add('selected');
+      
+      // Проверяем ответ
+      if (selectedName === currentBird.name) {
+        correctAnswers++;
+        feedback.textContent = 'Правильно!';
+        feedback.classList.add('correct');
+        button.classList.add('correct');
+      } else {
+        incorrectAnswers++;
+        feedback.textContent = `Неправильно! Это ${currentBird.name}`;
+        feedback.classList.add('incorrect');
+        button.classList.add('incorrect');
+        
+        // Подсвечиваем правильный ответ
+        document.querySelectorAll('.option-btn').forEach(btn => {
+          if (btn.dataset.name === currentBird.name) {
+            btn.classList.add('correct');
+          }
+        });
+      }
+      
+      // Разблокируем кнопку "Далее"
+      nextBtn.disabled = false;
+    }
+    
+    // Переход к следующему вопросу
+    nextBtn.addEventListener('click', () => {
+      currentQuestion++;
+      showQuestion();
+    });
+    
+    // Завершение теста
+    function finishTest() {
+      testFinished = true;
+      clearInterval(timerInterval);
+      
+      // Рассчитываем затраченное время
+      const timeSpent = TEST_DURATION - timeLeft;
+      const minutesSpent = Math.floor(timeSpent / 60);
+      const secondsSpent = timeSpent % 60;
+      
+      // Обновляем результаты
+      finalScoreElement.textContent = `${correctAnswers}/${QUESTIONS_COUNT}`;
+      correctAnswersElement.textContent = correctAnswers;
+      incorrectAnswersElement.textContent = incorrectAnswers;
+      timeSpentElement.textContent = `${minutesSpent}:${secondsSpent.toString().padStart(2, '0')}`;
+      
+      // Показываем интерфейс результатов
+      quizInterface.style.display = 'none';
+      resultsInterface.style.display = 'block';
+    }
+    
+    // Кнопки действий
+    restartBtn.addEventListener('click', initTest);
+    homeBtn.addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+    
+    // Запускаем тест при загрузке
+    document.addEventListener('DOMContentLoaded', initTest);
+  </script>
+</body>
+</html>

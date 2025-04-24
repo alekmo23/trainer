@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренировочный режим - Птичий тренажер</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .practice-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .stat-item {
+      text-align: center;
+      flex: 1;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    
+    .correct .stat-value {
+      color: var(--secondary);
+    }
+    
+    .incorrect .stat-value {
+      color: #EF4444;
+    }
+    
+    .bird-display {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .bird-image-container {
+      height: 400px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .bird-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .bird-display:hover .bird-image {
+      transform: scale(1.03);
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .option-btn {
+      padding: 1.2rem;
+      background: var(--card-bg);
+      border: 2px solid #E5E7EB;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      font-size: 1rem;
+    }
+    
+    .option-btn:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .option-btn.correct {
+      background: var(--secondary);
+      color: white;
+      border-color: var(--secondary);
+    }
+    
+    .option-btn.incorrect {
+      background: #EF4444;
+      color: white;
+      border-color: #EF4444;
+    }
+    
+    .option-btn.disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    .feedback {
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      display: none;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .feedback.correct {
+      background: #ECFDF5;
+      color: var(--secondary);
+      display: block;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .feedback.incorrect {
+      background: #FEF2F2;
+      color: #EF4444;
+      display: block;
+      border-left: 4px solid #EF4444;
+    }
+    
+    .feedback-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .feedback-icon {
+      font-size: 1.2rem;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .next-btn {
+      flex: 1;
+      padding: 1.2rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 1rem;
+    }
+    
+    .next-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .next-btn:disabled {
+      background: #E5E7EB;
+      cursor: not-allowed;
+    }
+    
+    .hint-btn {
+      padding: 1.2rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 1rem;
+    }
+    
+    .hint-btn:hover {
+      background: #D97706;
+    }
+    
+    .hint-btn:disabled {
+      background: #E5E7EB;
+      cursor: not-allowed;
+    }
+    
+    .hint-content {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+    
+    .hint-content.show {
+      display: block;
+    }
+    
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: 3px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .timer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+    
+    .fullscreen-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+    }
+    
+    @media (max-width: 768px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .bird-image-container {
+        height: 300px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .next-btn, .hint-btn {
+        width: 100%;
+      }
+    }
+    
+    /* Анимации */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .bird-display, .options-grid, .feedback {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Тренировочный режим</h1>
+        <p class="subtitle">Определяйте птиц без ограничения времени</p>
+      </div>
+    </header>
+
+    <main class="practice-container">
+      <div class="stats-bar">
+        <div class="stat-item correct">
+          <div class="stat-value" id="correct-count">0</div>
+          <div class="stat-label">Правильно</div>
+        </div>
+        <div class="stat-item incorrect">
+          <div class="stat-value" id="incorrect-count">0</div>
+          <div class="stat-label">Неправильно</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="accuracy">0%</div>
+          <div class="stat-label">Точность</div>
+        </div>
+      </div>
+      
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      
+      <div class="bird-display">
+        <button class="fullscreen-btn" id="fullscreen-btn">↗</button>
+        <div class="bird-image-container">
+          <img id="bird-image" class="bird-image" src="" alt="Фото птицы">
+        </div>
+      </div>
+      
+      <div id="feedback" class="feedback">
+        <div class="feedback-title">
+          <span class="feedback-icon"></span>
+          <span id="feedback-text"></span>
+        </div>
+        <div class="hint-content" id="hint-content"></div>
+      </div>
+      
+      <div class="options-grid" id="options-container">
+        <!-- Варианты ответов будут добавлены через JS -->
+      </div>
+      
+      <div class="action-buttons">
+        <button id="hint-btn" class="hint-btn">
+          <span id="hint-btn-text">Подсказка</span>
+        </button>
+        <button id="next-btn" class="next-btn" disabled>Следующая птица</button>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index.html'">На главную</button>
+    </footer>
+  </div>
+
+  <script>
+    // Полные данные о птицах
+    const birdsData = [
+      {
+        id: 1,
+        name: "Домовый воробей",
+        scientific: "Passer domesticus",
+        image: "images/sparrows/sparrow4.jpg",
+        description: "Один из самых распространённых видов воробьёв. Обитает вблизи человеческого жилья.",
+        hint: "Обратите внимание на серую шапочку и чёрное горловое пятно у самцов."
+      },
+      {
+        id: 2,
+        name: "Большая синица",
+        scientific: "Parus major",
+        image: "images/sparrows/sparrow2.jpg",
+        description: "Крупная синица с ярким жёлтым брюшком и чёрной полосой вдоль груди.",
+        hint: "Отличительная черта — чёрная полоса на жёлтом брюшке."
+      },
+      {
+        id: 3,
+        name: "Обыкновенный снегирь",
+        scientific: "Pyrrhula pyrrhula",
+        image: "images/sparrows/sparrow22.jpg",
+        description: "Яркая птица с красной грудью у самцов и серой у самок.",
+        hint: "Самцы имеют ярко-красную грудь, самки — серовато-розовую."
+      },
+      {
+        id: 4,
+        name: "Зяблик",
+        scientific: "Fringilla coelebs",
+        image: "images/sparrows/sparrow9.jpg",
+        description: "Яркая певчая птица с контрастным оперением. Известен красивой песней.",
+        hint: "Обратите внимание на белые полосы на крыльях и зелёное надхвостье."
+      },
+      {
+        id: 5,
+        name: "Чиж",
+        scientific: "Spinus spinus",
+        image: "images/sparrows/sparrow37.jpg",
+        description: "Мелкая птица с жёлто-зелёным оперением. Часто держится стайками.",
+        hint: "У самцов чёрная шапочка и ярко-жёлтые полосы на крыльях."
+      },
+      {
+        id: 6,
+        name: "Щегол",
+        scientific: "Carduelis carduelis",
+        image: "images/sparrows/sparrow38.jpg",
+        description: "Яркая птица с красным лицом и жёлтыми полосами на крыльях.",
+        hint: "Характерные красные пятна на лице и жёлтые полосы на чёрных крыльях."
+      },
+      {
+        id: 7,
+        name: "Обыкновенная чечевица",
+        scientific: "Carpodacus erythrinus",
+        image: "images/sparrows/sparrow19.jpg",
+        description: "Птица с ярко-красной окраской у самцов. Песня — звонкое «вит-вит-вит-вью».",
+        hint: "Самцы имеют равномерную красную окраску головы и груди."
+      },
+      {
+        id: 8,
+        name: "Клёст-еловик",
+        scientific: "Loxia curvirostra",
+        image: "images/sparrows/sparrow12.jpg",
+        description: "Птица с крестообразным клювом, приспособленным для добычи семян из шишек.",
+        hint: "Характерный перекрещивающийся клюв и красное оперение у самцов."
+      },
+      {
+        id: 9,
+        name: "Полевой воробей",
+        scientific: "Passer montanus",
+        image: "images/sparrows/sparrow23.jpg",
+        description: "Отличается от домового воробья коричневой шапочкой и чёрными пятнами на щеках.",
+        hint: "Ищите коричневую шапочку и чёрные пятна на белых щеках."
+      },
+      {
+        id: 10,
+        name: "Обыкновенная овсянка",
+        scientific: "Emberiza citrinella",
+        image: "images/sparrows/sparrow18.jpg",
+        description: "Ярко-жёлтая птица с коричневыми пестринами. Песня — «зинь-зинь-зинь-цииик».",
+        hint: "Ярко-жёлтая голова и грудь с коричневыми пестринами."
+      },
+      {
+        id: 11,
+        name: "Зеленушка",
+        scientific: "Chloris chloris",
+        image: "images/sparrows/sparrow8.jpg",
+        description: "Птица с оливково-зелёным оперением и жёлтыми полосами на крыльях.",
+        hint: "Оливково-зелёное оперение с ярко-жёлтыми полосами на крыльях."
+      },
+      {
+        id: 12,
+        name: "Коноплянка",
+        scientific: "Linaria cannabina",
+        image: "images/sparrows/sparrow14.jpg",
+        description: "Мелкая птица с красным лбом и грудью у самцов.",
+        hint: "У самцов красный лоб и грудь, коричневая спина."
+      },
+      {
+        id: 13,
+        name: "Чечётка",
+        scientific: "Acanthis flammea",
+        image: "images/sparrows/sparrow36.jpg",
+        description: "Мелкая птица с красной шапочкой. Питается семенами берёзы и ольхи.",
+        hint: "Маленькая птичка с красной шапочкой у самцов."
+      },
+      {
+        id: 14,
+        name: "Черноголовая гаичка",
+        scientific: "Poecile palustris",
+        image: "images/sparrows/sparrow35.jpg",
+        description: "Мелкая синица с чёрной шапочкой. Голос — звонкое «ци-ци-джээ».",
+        hint: "Чёрная шапочка и горловое пятно на белых щеках."
+      },
+      {
+        id: 15,
+        name: "Московка",
+        scientific: "Periparus ater",
+        image: "images/sparrows/sparrow17.jpg",
+        description: "Мелкая синица с чёрной шапочкой и белыми щеками.",
+        hint: "Чёрная шапочка с большими белыми щеками."
+      },
+      {
+        id: 16,
+        name: "Хохлатая синица",
+        scientific: "Lophophanes cristatus",
+        image: "images/sparrows/sparrow34.jpg",
+        description: "Синица с характерным хохолком. Голос — тонкое «ци-ци-сррр».",
+        hint: "Отличительная черта — острый хохолок на голове."
+      },
+      {
+        id: 17,
+        name: "Ремез",
+        scientific: "Remiz pendulinus",
+        image: "images/sparrows/sparrow26.jpg",
+        description: "Строит висячие гнёзда из растительных волокон.",
+        hint: "Маска вокруг глаз и светлое оперение."
+      },
+      {
+        id: 18,
+        name: "Зарянка",
+        scientific: "Erithacus rubecula",
+        image: "images/sparrows/sparrow7.jpg",
+        description: "Птица с оранжевой грудью и лицом. Поёт мелодичную песню.",
+        hint: "Ярко-оранжевая грудь и лицо у взрослых особей."
+      },
+      {
+        id: 19,
+        name: "Каменный дрозд",
+        scientific: "Monticola saxatilis",
+        image: "images/sparrows/sparrow10.jpg",
+        description: "Яркий дрозд с сизым верхом и рыжим низом.",
+        hint: "Сизый верх и ярко-рыжий низ у самцов."
+      },
+      {
+        id: 20,
+        name: "Краснокрылая каменка",
+        scientific: "Monticola saxatilis",
+        image: "images/sparrows/sparrow15.jpg",
+        description: "Птица с контрастным сизым и рыжим оперением.",
+        hint: "Рыжие подкрылья, заметные в полёте."
+      },
+      {
+        id: 21,
+        name: "Скромная горихвостка",
+        scientific: "Phoenicurus phoenicurus",
+        image: "images/sparrows/sparrow30.jpg",
+        description: "Яркая птица с рыжим хвостом. Песня — звонкая трель.",
+        hint: "Постоянно подрагивает рыжим хвостом."
+      },
+      {
+        id: 22,
+        name: "Вертишейка",
+        scientific: "Jynx torquilla",
+        image: "images/sparrows/sparrow3.jpg",
+        description: "Необычный дятел с защитной окраской. При опасности вытягивает шею.",
+        hint: "Пёстрая окраска, напоминающая кору дерева."
+      },
+      {
+        id: 23,
+        name: "Сибирская чечевица",
+        scientific: "Carpodacus roseus",
+        image: "images/sparrows/sparrow29.jpg",
+        description: "Северный вид чечевицы с розовым оперением.",
+        hint: "Розовое оперение у самцов, более бледное у самок."
+      },
+      {
+        id: 24,
+        name: "Серый снегирь",
+        scientific: "Pyrrhula cineracea",
+        image: "images/sparrows/sparrow28.jpg",
+        description: "Восточный родственник обыкновенного снегиря с серым брюшком.",
+        hint: "Серое брюшко в отличие от обыкновенного снегиря."
+      },
+      {
+        id: 25,
+        name: "Фоновый крапивник",
+        scientific: "Troglodytes troglodytes",
+        image: "images/sparrows/sparrow33.jpg",
+        description: "Очень мелкая птица с поднятым хвостом. Голос — громкая трель.",
+        hint: "Крошечная птичка с почти вертикально поднятым хвостом."
+      },
+      {
+        id: 26,
+        name: "Щур",
+        scientific: "Pinicola enucleator",
+        image: "images/sparrows/sparrow39.jpg",
+        description: "Крупная птица с массивным клювом. Оперение самцов розовое.",
+        hint: "Массивный клюв и розовая окраска у самцов."
+      },
+      {
+        id: 27,
+        name: "Желтогрудая овсянка",
+        scientific: "Emberiza aureola",
+        image: "images/sparrows/sparrow6.jpg",
+        description: "Яркая овсянка с жёлтой грудью и каштановой спиной.",
+        hint: "Ярко-жёлтая грудь и каштановая спина у самцов."
+      },
+      {
+        id: 28,
+        name: "Обыкновенный каменный воробей",
+        scientific: "Petronia petronia",
+        image: "images/sparrows/sparrow21.jpg",
+        description: "Крупный воробей с пестрым оперением и жёлтым пятном на горле.",
+        hint: "Ищите жёлтое пятно на горле и пёструю спину."
+      },
+      {
+        id: 29,
+        name: "Белогорлый воробей",
+        scientific: "Petronia petronia",
+        image: "images/sparrows/sparrow1.jpg",
+        description: "Воробей с ярким белым горлом и пестрым оперением.",
+        hint: "Яркое белое горло и пёстрая окраска."
+      },
+      {
+        id: 30,
+        name: "Клёст-сосновик",
+        scientific: "Loxia pytyopsittacus",
+        image: "images/sparrows/sparrow13.jpg",
+        description: "Крупный клёст с мощным клювом. Специализируется на семенах сосны.",
+        hint: "Очень мощный клюв и крупные размеры."
+      }
+    ];
+
+    // Элементы DOM
+    const birdImage = document.getElementById('bird-image');
+    const optionsContainer = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback');
+    const feedbackText = document.getElementById('feedback-text');
+    const feedbackIcon = feedback.querySelector('.feedback-icon');
+    const nextBtn = document.getElementById('next-btn');
+    const hintBtn = document.getElementById('hint-btn');
+    const hintContent = document.getElementById('hint-content');
+    const correctCount = document.getElementById('correct-count');
+    const incorrectCount = document.getElementById('incorrect-count');
+    const accuracyDisplay = document.getElementById('accuracy');
+    const progressBar = document.getElementById('progress-bar');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+    // Состояние приложения
+    let currentBird;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let totalAttempts = 0;
+    let hintUsed = false;
+    let answered = false;
+
+    // Инициализация
+    function init() {
+      displayNewBird();
+      setupEventListeners();
+    }
+
+    // Показать новую птицу
+    function displayNewBird() {
+      resetState();
+      currentBird = getRandomBird();
+      birdImage.src = currentBird.image;
+      
+      const options = getRandomOptions(currentBird, 4);
+      renderOptions(options);
+      
+      // Обновить прогресс
+      updateProgress();
+    }
+
+    // Получить случайную птицу
+    function getRandomBird() {
+      return birdsData[Math.floor(Math.random() * birdsData.length)];
+    }
+
+    // Получить варианты ответов
+    function getRandomOptions(correctBird, count = 4) {
+      const options = [correctBird];
+      
+      while (options.length < count) {
+        const randomBird = getRandomBird();
+        if (!options.some(b => b.id === randomBird.id)) {
+          options.push(randomBird);
+        }
+      }
+      
+      return shuffleArray(options);
+    }
+
+    // Перемешать массив
+    function shuffleArray(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    // Отрендерить варианты ответов
+    function renderOptions(options) {
+      optionsContainer.innerHTML = '';
+      
+      options.forEach(bird => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = bird.name;
+        btn.dataset.name = bird.name;
+        btn.addEventListener('click', () => checkAnswer(bird.name));
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    // Проверить ответ
+    function checkAnswer(selectedName) {
+      if (answered) return;
+      answered = true;
+      
+      totalAttempts++;
+      const options = document.querySelectorAll('.option-btn');
+      const isCorrect = selectedName === currentBird.name;
+      
+      if (isCorrect) {
+        correctAnswers++;
+        correctCount.textContent = correctAnswers;
+        showFeedback(true, currentBird);
+      } else {
+        incorrectAnswers++;
+        incorrectCount.textContent = incorrectAnswers;
+        showFeedback(false, currentBird);
+      }
+      
+      // Подсветить правильные/неправильные ответы
+      options.forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.name === currentBird.name) {
+          btn.classList.add('correct');
+        } else if (btn.dataset.name === selectedName && !isCorrect) {
+          btn.classList.add('incorrect');
+        }
+      });
+      
+      updateAccuracy();
+      nextBtn.disabled = false;
+      
+      // Если использовали подсказку, сделать кнопку неактивной
+      if (hintUsed) {
+        hintBtn.disabled = true;
+      }
+    }
+
+    // Показать обратную связь
+    function showFeedback(isCorrect, bird) {
+      if (isCorrect) {
+        feedback.className = 'feedback correct';
+        feedbackIcon.textContent = '✓';
+        feedbackText.textContent = 'Правильно! Это ' + bird.name;
+      } else {
+        feedback.className = 'feedback incorrect';
+        feedbackIcon.textContent = '✗';
+        feedbackText.textContent = 'Неправильно. Это ' + bird.name;
+      }
+      
+      // Показать описание птицы
+      hintContent.innerHTML = `
+        <p><strong>Научное название:</strong> ${bird.scientific}</p>
+        <p><strong>Описание:</strong> ${bird.description}</p>
+      `;
+      hintContent.classList.add('show');
+    }
+
+    // Сбросить состояние
+    function resetState() {
+      answered = false;
+      hintUsed = false;
+      nextBtn.disabled = true;
+      hintBtn.disabled = false;
+      hintBtn.textContent = 'Подсказка';
+      hintContent.classList.remove('show');
+      feedback.className = 'feedback';
+    }
+
+    // Обновить точность
+    function updateAccuracy() {
+      const total = correctAnswers + incorrectAnswers;
+      const accuracy = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+      accuracyDisplay.textContent = accuracy + '%';
+    }
+
+    // Обновить прогресс
+    function updateProgress() {
+      const total = correctAnswers + incorrectAnswers;
+      const progress = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+      progressBar.style.width = progress + '%';
+    }
+
+    // Показать подсказку
+    function showHint() {
+      if (hintUsed || answered) return;
+      
+      hintContent.innerHTML = `
+        <p><strong>Подсказка:</strong> ${currentBird.hint}</p>
+      `;
+      hintContent.classList.add('show');
+      hintUsed = true;
+      hintBtn.textContent = 'Подсказка использована';
+      hintBtn.disabled = true;
+    }
+
+    // Полноэкранный режим
+    function toggleFullscreen() {
+      const elem = document.documentElement;
+      
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Настройка обработчиков событий
+    function setupEventListeners() {
+      nextBtn.addEventListener('click', displayNewBird);
+      hintBtn.addEventListener('click', showHint);
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+      
+      // Обработка клавиатуры
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !nextBtn.disabled) {
+          displayNewBird();
+        }
+      });
+    }
+
+    // Запуск приложения
+    init();
+  </script>
+</body>
+</html>
